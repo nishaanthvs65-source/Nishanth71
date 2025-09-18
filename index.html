@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>ArogyaBot</title></head>
+<body>
+  <h2>ArogyaBot — Disease Awareness Chat</h2>
+  <div id="chat" style="border:1px solid #ccc; padding:10px; height:300px; overflow:auto"></div>
+  <textarea id="input" rows=3 style="width:100%"></textarea>
+  <button id="send">Send</button>
+
+<script>
+let history = [];
+const chat = document.getElementById('chat');
+function append(role, text){
+  const d = document.createElement('div');
+  d.innerHTML = `<strong>${role}:</strong> ${text}`;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+document.getElementById('send').onclick = async () => {
+  const t = document.getElementById('input').value.trim();
+  if(!t) return;
+  append('You', t);
+  history.push({role:'user', content: t});
+  document.getElementById('input').value = '';
+  append('ArogyaBot','typing...');
+  const resp = await fetch('/chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ messages: history })
+  });
+  const data = await resp.json();
+  // replace last 'typing...' with actual
+  chat.removeChild(chat.lastChild);
+  append('ArogyaBot', data.reply);
+  history.push({role:'assistant', content: data.reply});
+};
+</script>
+</body>
+</html>
